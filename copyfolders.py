@@ -26,17 +26,23 @@ def get_all_master_folders(folder, **kwargs):
 
 
 def skip_subfolder(folder, files, **kwargs):
-    hint = kwargs.get("hint", None)
+    hint = kwargs.get("hint", "")
     extensions = kwargs.get("extensions", None)
     extensions = extensions if extensions else DEFAULT_MASTER_FILE_EXTENSIONS
-    to_ignore = [
+    if hint:
+        return [
+            f
+            for f in files
+            if os.path.isdir(os.path.join(folder, f))
+            or os.path.splitext(f)[1] not in extensions
+            or hint not in f
+        ]
+    return [
         f
         for f in files
         if os.path.isdir(os.path.join(folder, f))
         or os.path.splitext(f)[1] not in extensions
-        or hint not in f
     ]
-    return to_ignore
 
 
 def copy_folder(to_copy, **kwargs):
@@ -137,8 +143,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "-fh",
-        "--folder_hint",
-        help="Hint contained in the folder name to \
+        "--file_hint",
+        help="Hint contained in the file name to \
         figure out whether or not it needs to be moved",
         required=False,
         type=str,
@@ -155,7 +161,7 @@ if __name__ == "__main__":
     source = args["source"]
     destination = args["destination"]
     extensions = args["extensions"]
-    hint = args["folder_hint"]
+    hint = args["file_hint"]
     dry_run = args["dry_run"]
     ext = None
     if extensions:
